@@ -13,14 +13,16 @@ const secretjs = new SecretNetworkClient({
   walletAddress: wallet.address,
 });
 
-const transfer_token = async () => {
+const transfer_token = async (amount, recipientAddress) => {
   let handleMsg = {
     transfer: {
       owner: wallet.address,
-      amount: "10000000",
-      recipient: "secret12r7r0kgsrvu29tdug6eu6h0aslgajqys2qvdc4",
+      amount: amount, // Make sure to convert this to the proper format if needed
+      recipient: recipientAddress,
     },
   };
+  // Rest of your function remains the same
+
   console.log("Transferring tokens");
 
   let tx = await secretjs.tx.compute.executeContract(
