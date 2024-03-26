@@ -16,7 +16,7 @@ const secretjs = new SecretNetworkClient({
 const mint = async () => {
   let handleMsg = {
     mint: {
-      amount: "10000000",
+      amount: "1000000000",
       recipient: wallet.address,
     },
   };

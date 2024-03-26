@@ -13,7 +13,9 @@ const secretjs = new SecretNetworkClient({
   walletAddress: wallet.address,
 });
 
-const transfer_token = async (amount, recipientAddress) => {
+const transfer_token = async () => {
+  let amount = "500";
+  let recipientAddress = "secret12r7r0kgsrvu29tdug6eu6h0aslgajqys2qvdc4";
   let handleMsg = {
     transfer: {
       owner: wallet.address,

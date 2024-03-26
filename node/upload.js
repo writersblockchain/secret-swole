@@ -67,6 +67,24 @@ let instantiate_contract = async () => {
       },
     ],
   };
+
+  let config = {
+    /// Indicates whether deposit functionality should be enabled
+    /// default: False
+    enable_deposit: true,
+    /// Indicates whether redeem functionality should be enabled
+    /// default: False
+    enable_redeem: true,
+    /// Indicates whether mint functionality should be enabled
+    /// default: False
+    enable_mint: true,
+    /// Indicates whether burn functionality should be enabled
+    /// default: False
+    enable_burn: true,
+    /// Indicated whether an admin can modify supported denoms
+    /// default: False
+    can_modify_denoms: true,
+  };
   let tx = await secretjs.tx.compute.instantiateContract(
     {
       code_id: codeId,
@@ -74,6 +92,8 @@ let instantiate_contract = async () => {
       code_hash: contractCodeHash,
       init_msg: init,
       label: "secret swole shitcoin " + Math.ceil(Math.random() * 10000),
+      config: config,
+      admin: wallet.address,
     },
     {
       gasLimit: 400_000,
