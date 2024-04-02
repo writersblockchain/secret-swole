@@ -7,57 +7,65 @@ function App() {
   const [amount, setAmount] = useState(""); // State for storing the amount
   const [walletAddress, setWalletAddress] = useState(""); // State for storing the wallet address
 
-  const wallet = new Wallet(process.env.REACT_APP_MNEMONIC);
-  const contractAddress = process.env.REACT_APP_CONTRACT_ADDRESS;
-  const contractCodeHash = process.env.REACT_APP_CONTRACT_CODE_HASH;
-
-  const secretjs = new SecretNetworkClient({
-    chainId: "pulsar-3",
-    url: "https://api.pulsar3.scrttestnet.com",
-    wallet: wallet,
-    walletAddress: wallet.address,
-  });
+  // Convert the input amount to the proper format before sending
+  const convertAmountToSmallestUnit = (amount) => {
+    // Assuming the token has 3 decimals as previously discussed
+    return (amount * Math.pow(10, 3)).toString();
+  };
 
   const transfer_token = async () => {
+    const smallestUnitAmount = convertAmountToSmallestUnit(amount);
+
+    // Initialize SecretNetworkClient inside the function to use the most updated state
+    const wallet = new Wallet(process.env.REACT_APP_MNEMONIC);
+    const contractAddress = process.env.REACT_APP_CONTRACT_ADDRESS;
+    const contractCodeHash = process.env.REACT_APP_CONTRACT_CODE_HASH;
+    
+    const secretjs = new SecretNetworkClient({
+      chainId: "pulsar-3",
+      url: "https://api.pulsar3.scrttestnet.com",
+      wallet: wallet,
+      walletAddress: wallet.address,
+    });
+
     let handleMsg = {
       transfer: {
         owner: wallet.address,
-        amount: amount, // Make sure to convert this to the proper format if needed
+        amount: smallestUnitAmount, // Use converted amount
         recipient: walletAddress,
       },
     };
-    // Rest of your function remains the same
 
     console.log("Transferring tokens");
-    console.log(amount);
-    console.log(walletAddress);
-
-    let tx = await secretjs.tx.compute.executeContract(
-      {
+    try {
+      let tx = await secretjs.tx.compute.executeContract({
         sender: wallet.address,
         contract_address: contractAddress,
         code_hash: contractCodeHash,
         msg: handleMsg,
-      },
-      {
+      }, {
         gasLimit: 100_000,
-      }
-    );
-    console.log(tx);
+      });
+      console.log(tx);
+      alert("Transfer successful!");
+    } catch (error) {
+      console.error("Transfer failed:", error);
+      alert("Transfer failed: " + error.message);
+    }
   };
 
   return (
     <div className="App">
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
-        <p>Amount to Transfer</p> {/* Text for the amount input */}
+        <p>Amount to Transfer</p>
         <input
           type="number"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
           placeholder="amount of $SWOLE to send?"
         />
-        <p>Wallet Address</p> {/* Text for the wallet address input */}
+        <p>Wallet Address</p>
         <input
           type="text"
           value={walletAddress}
