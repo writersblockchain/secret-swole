@@ -1,45 +1,36 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import logo from "./logo.svg";
 import "./App.css";
-import { SecretNetworkClient } from 'secretjs';
+import { SecretjsContext } from "../src/secretJs/secretjsContext";
+import { SecretjsFunctions } from "../src/secretJs/SecretjsFunctions";
 
 function App() {
   const [amount, setAmount] = useState("");
-  const [walletAddress, setWalletAddress] = useState("");
   const [recipientAddress, setRecipientAddress] = useState("");
+  const { transfer_token } = SecretjsFunctions();
+  const { connectWallet, walletAddress } = useContext(SecretjsContext);
 
-  async function connectToKeplr() {
-    try {
-      const chainId = "secret-3";
-      await window.keplr.enable(chainId);
-      const keplrOfflineSigner = window.keplr.getOfflineSigner(chainId);
-      const accounts = await keplrOfflineSigner.getAccounts();
-      setWalletAddress(accounts[0].address);
-      alert(`Wallet ${accounts[0].address} is connected!`);
-    } catch (error) {
-      console.error("Error connecting to Keplr:", error);
-      alert("Failed to connect to Keplr.");
+  const handleSubmit = async (event) => {
+    event.preventDefault(); // Prevent the form from refreshing the page
+    // Check if the amount is an integer and positive
+    if (!amount || !Number.isInteger(Number(amount)) || Number(amount) <= 0) {
+      alert("Please enter a valid, positive integer amount.");
+      return;
     }
-  }
-
-  const transferToken = async () => {
+    if (!recipientAddress) {
+      alert("Please enter the recipient's wallet address.");
+      return;
+    }
     try {
-      const chainId = "secret-3";
-      const keplrOfflineSigner = window.keplr.getOfflineSigner(chainId);
-      const accounts = await keplrOfflineSigner.getAccounts();
-      const secretjs = await SecretNetworkClient.create({
-        chainId,
-        grpcWebUrl: "http://localhost:3000",
-        wallet: keplrOfflineSigner,
-        walletAddress: accounts[0].address,
-        encryptionUtils: window.keplr.getEnigmaUtils(chainId),
-      });
-
-      console.log("SecretNetworkClient instantiated successfully!");
-      alert("Ready to perform the transfer!");
+      // Convert amount to integer
+      const intAmount = parseInt(amount, 10);
+      // Assuming transfer_token takes walletAddress, recipientAddress, and amount
+      const result = await transfer_token(intAmount, recipientAddress);
+      console.log("Transaction successful:", result);
+      alert("Transaction successful!");
     } catch (error) {
-      console.error("Transfer failed:", error);
-      alert("Transfer failed: " + error.message);
+      console.error("Transaction failed:", error);
+      alert("Transaction failed: " + error.message);
     }
   };
 
@@ -47,28 +38,22 @@ function App() {
     <div className="App">
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
-        {!walletAddress ? (
-          <button onClick={connectToKeplr}>Connect to Keplr</button>
-        ) : (
-          <>
-            <p>Connected Wallet Address: {walletAddress}</p>
-            <p>Amount to Transfer</p>
-            <input
-              type="number"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="Enter amount of $SWOLE to send"
-            />
-            <p>Recipient Wallet Address</p>
-            <input
-              type="text"
-              value={recipientAddress}
-              onChange={(e) => setRecipientAddress(e.target.value)}
-              placeholder="Enter recipient wallet address"
-            />
-            <button onClick={transferToken}>Transfer</button>
-          </>
-        )}
+        <button onClick={connectWallet}>Connect to Keplr</button>
+        <form onSubmit={handleSubmit}>
+          <input
+            type="text"
+            placeholder="Enter amount to transfer"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+          />
+          <input
+            type="text"
+            placeholder="Recipient's Wallet Address"
+            value={recipientAddress}
+            onChange={(e) => setRecipientAddress(e.target.value)}
+          />
+          <button type="submit">Transfer Tokens</button>
+        </form>
       </header>
     </div>
   );
